@@ -12,9 +12,7 @@ public class ExternalEnvironment {
         Thread consoleThread;
         ConsoleWorker consoleWorker = new ConsoleWorker();
 
-        microControllerList.add(new MicroController(5000));
-        microControllerList.add(new MicroController(7000));
-        microControllerList.add(new MicroController(8000));
+        addMicroController(microControllerList);
 
         for (MicroController controller:microControllerList) {
             publicThreadList.add(new Thread(() -> publicData(controller)));
@@ -22,6 +20,7 @@ public class ExternalEnvironment {
         for (Thread thread:publicThreadList){
             thread.start();
         }
+
         consoleThread = new Thread(()->console(consoleWorker, microControllerList));
         consoleThread.start();
 
@@ -49,5 +48,9 @@ public class ExternalEnvironment {
         consoleWorker.enterIdForChooseController(microControllerList);
     }
 
-
+    public static void addMicroController(List<MicroController> microControllerList){
+        microControllerList.add(new MicroController(5000));
+        microControllerList.add(new MicroController(10000));
+        microControllerList.add(new MicroController(20000));
+    }
 }

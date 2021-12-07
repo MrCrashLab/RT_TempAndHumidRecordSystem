@@ -10,21 +10,21 @@ import ru.MrCrashLab.tempAndHumidRecordSystem.Sensors.TempSensor;
 import java.util.Map;
 
 public class MicroController {
-    private final int ID; //уникальный номер микроконтроллера
-    private final int TIME_TO_PUBLISH; //время через которое публикуются значения в топике
+    private final int id; //уникальный номер микроконтроллера
+    private final int timeToPublish; //время через которое публикуются значения в топике
     private final HumidSensor humidSensor;
     private final String controllerName;
     private final TempSensor tempSensor;
     private final Map<String, SensorInterface> sensors;
 
     public MicroController(int timeToPublish) {
-        ID = this.hashCode();
-        TIME_TO_PUBLISH = timeToPublish;
+        id = this.hashCode();
+        this.timeToPublish = timeToPublish;
         humidSensor = new HumidSensor(0);
         tempSensor = new TempSensor(0);
         sensors = Map.of("temperature", tempSensor,
                 "humidity", humidSensor);
-        controllerName = "Controller_" + ID + '/';
+        controllerName = "Controller_" + id + '/';
     }
 
     public void publicData() {
@@ -39,7 +39,7 @@ public class MicroController {
                 client.publish(topicName, message);
 
             }
-            Thread.sleep(TIME_TO_PUBLISH);
+            Thread.sleep(timeToPublish);
             client.disconnect();
         } catch (MqttException | InterruptedException e) {
             e.printStackTrace();
@@ -58,7 +58,7 @@ public class MicroController {
         return sensors;
     }
 
-    public int getID() {
-        return ID;
+    public int getId() {
+        return id;
     }
 }
