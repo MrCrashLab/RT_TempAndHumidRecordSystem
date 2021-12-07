@@ -5,26 +5,23 @@ import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.sql.*;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.zip.DeflaterOutputStream;
 
 public class MqttCallbackHub implements MqttCallback {
     private final String dbUrl;
     private final String dbLogin;
     private final String dbPassword;
-    private final Map<String, Float[]> data;
-    private final Float tmp[];
+    private final Map<String, Map<String,Float>> data;
 
     public MqttCallbackHub(String dbUrl,
                            String dbLogin,
                            String dbPassword,
-                           Map<String, Float[]> data,
-                           Float tmp[]) {
+                           Map<String, Map<String,Float>> data) {
         this.dbUrl = dbUrl;
         this.dbLogin = dbLogin;
         this.dbPassword = dbPassword;
         this.data = data;
-        this.tmp = tmp;
     }
 
     @Override
@@ -36,16 +33,15 @@ public class MqttCallbackHub implements MqttCallback {
     public void messageArrived(String s, MqttMessage mqttMessage) {
         System.out.println(s + " " + new String(mqttMessage.getPayload()));
         if (data.get(s.split("/")[0]) == null)
-            data.put(s.split("/")[0], new Float[2]);
+            data.put(s.split("/")[0], new HashMap<>());
         if (s.split("/")[1].equals("temperature"))
-            tmp[0] = Float.parseFloat(new String(mqttMessage.getPayload()));
+            data.get(s.split("/")[0]).put("temperature",Float.parseFloat(new String(mqttMessage.getPayload())));
         else if (s.split("/")[1].equals("humidity"))
-            tmp[1] = Float.parseFloat(new String(mqttMessage.getPayload()));
+            data.get(s.split("/")[0]).put("humidity",Float.parseFloat(new String(mqttMessage.getPayload())));
 
         if (data.get(s.split("/")[0]) != null &&
-                tmp[0] != null &&
-                tmp[1] != null) {
-            data.put(s.split("/")[0], tmp);
+                data.get(s.split("/")[0]).get("temperature") != null &&
+                data.get(s.split("/")[0]).get("humidity") != null) {
             try {
                 Class.forName("org.postgresql.Driver");
                 Connection connection = DriverManager.getConnection(dbUrl, dbLogin, dbPassword);
@@ -57,17 +53,14 @@ public class MqttCallbackHub implements MqttCallback {
                                 " time) " +
                                 "VALUES (?,?,?,?)");
                 preparedStatement.setInt(1, Integer.parseInt(s.split("/")[0].split("_")[1]));
-                preparedStatement.setFloat(2, data.get(s.split("/")[0])[0]);
-                preparedStatement.setFloat(3, data.get(s.split("/")[0])[1]);
+                preparedStatement.setFloat(2, data.get(s.split("/")[0]).get("temperature"));
+                preparedStatement.setFloat(3, data.get(s.split("/")[0]).get("humidity"));
                 preparedStatement.setTimestamp(4, new Timestamp(System.currentTimeMillis()));
                 preparedStatement.execute();
                 connection.close();
-                tmp[0] = null;
-                tmp[1] = null;
-            } catch (ClassNotFoundException e) {
+                data.remove(s.split("/")[0]);
+            } catch (ClassNotFoundException | SQLException e) {
                 e.printStackTrace();
-            } catch (SQLException throwables) {
-                throwables.printStackTrace();
             }
         }
     }

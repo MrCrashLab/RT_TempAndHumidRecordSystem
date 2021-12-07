@@ -17,13 +17,12 @@ public class HubController {
     private final String dbLogin;
     private final String dbPassword;
     private final List<String> topicNames;
-    private Map<String, Float[]> data = new HashMap<>();
-    private Float[] tmp = new Float[2];
+    private Map<String, Map<String,Float>> data = new HashMap<>();
 
     public HubController(List<String> topicNames) {
         Properties properties = new Properties();
         try {
-            properties.load(new FileReader(new File("src/main/resources/hub_controller.properties")));
+            properties.load(new FileReader("src/main/resources/hub_controller.properties"));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -37,9 +36,9 @@ public class HubController {
         System.out.println("\u001B[34mStart Subscriber\u001B[0m");
         try {
             MqttClient client = new MqttClient("tcp://localhost:1883", MqttClient.generateClientId());
-            client.setCallback(new MqttCallbackHub(dbUrl, dbLogin, dbPassword, data, tmp));
+            client.setCallback(new MqttCallbackHub(dbUrl, dbLogin, dbPassword, data));
             client.connect();
-            client.subscribe(topicNames.stream().toArray(String[]::new));
+            client.subscribe(topicNames.toArray(String[]::new));
         } catch (MqttException e) {
             e.printStackTrace();
         }

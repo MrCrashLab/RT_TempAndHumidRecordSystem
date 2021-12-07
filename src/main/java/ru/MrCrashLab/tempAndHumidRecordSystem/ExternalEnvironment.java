@@ -14,26 +14,26 @@ public class ExternalEnvironment {
 
         addMicroController(microControllerList);
 
-        for (MicroController controller:microControllerList) {
+        for (MicroController controller : microControllerList) {
             publicThreadList.add(new Thread(() -> publicData(controller)));
         }
-        for (Thread thread:publicThreadList){
+        for (Thread thread : publicThreadList) {
             thread.start();
         }
 
-        consoleThread = new Thread(()->console(consoleWorker, microControllerList));
+        consoleThread = new Thread(() -> console(consoleWorker, microControllerList));
         consoleThread.start();
 
         while (true) {
-            for(int i = 0; i<publicThreadList.size();i++){
-                if(!publicThreadList.get(i).isAlive()){
+            for (int i = 0; i < publicThreadList.size(); i++) {
+                if (!publicThreadList.get(i).isAlive()) {
                     int finalI = i;
                     publicThreadList.set(i, new Thread(() -> publicData(microControllerList.get(finalI))));
                     publicThreadList.get(i).start();
                 }
             }
-            if(!consoleThread.isAlive()){
-                consoleThread = new Thread(()->console(consoleWorker, microControllerList));
+            if (!consoleThread.isAlive()) {
+                consoleThread = new Thread(() -> console(consoleWorker, microControllerList));
                 consoleThread.start();
             }
         }
@@ -43,14 +43,14 @@ public class ExternalEnvironment {
         microController.publicData();
     }
 
-    public static void console(ConsoleWorker consoleWorker, List<MicroController> microControllerList){
+    public static void console(ConsoleWorker consoleWorker, List<MicroController> microControllerList) {
         consoleWorker.printMicroControllerList(microControllerList);
         consoleWorker.enterIdForChooseController(microControllerList);
     }
 
-    public static void addMicroController(List<MicroController> microControllerList){
-        microControllerList.add(new MicroController(5000));
+    public static void addMicroController(List<MicroController> microControllerList) {
         microControllerList.add(new MicroController(10000));
-        microControllerList.add(new MicroController(20000));
+        microControllerList.add(new MicroController(10000));
+        microControllerList.add(new MicroController(10000));
     }
 }
