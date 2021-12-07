@@ -37,13 +37,11 @@ public class MicroController {
                 MqttMessage message = new MqttMessage();
                 message.setPayload(Double.toString(entry.getValue().getData()).getBytes());
                 client.publish(topicName, message);
-                System.out.println(message);
+
             }
             Thread.sleep(TIME_TO_PUBLISH);
             client.disconnect();
-        } catch (MqttException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
+        } catch (MqttException | InterruptedException e) {
             e.printStackTrace();
         }
     }
